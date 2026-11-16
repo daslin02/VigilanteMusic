@@ -14,7 +14,11 @@ namespace VigilanteMusic.SoundParser
         private AudioFileReader _reader;
         private float _volume = 1.0f;
 
-        public PlayList _playList;
+        public PlayList PL;
+
+        public event Action Update;
+
+        public bool IsRepeat = false;
 
         public float Volume
         {
@@ -29,20 +33,63 @@ namespace VigilanteMusic.SoundParser
 
         public void Play(string filePath)
         {
-            Stop(); 
+            Stop();
 
             _reader = new AudioFileReader(filePath);
+            _reader.Volume = _volume;
             _output = new WaveOutEvent();
+            _output.PlaybackStopped += OnPlaybackStopped;
             _output.Init(_reader);
             _output.Play();
         }
+        private void OnPlaybackStopped(object sender, StoppedEventArgs e)
+        {
+            if (e.Exception != null || _output == null) return;
+
+            // repeat current track
+            if (IsRepeat)
+            {
+                _reader.Position = 0;
+                _output.Play();
+                return;
+            }
+
+            string path = null;
+
+            // go to next track, wrap to first if it was the last one
+            if (PL != null && PL.Next(out path))
+            {
+                Play(path);
+            }
+            else if (PL != null && PL.IsVerified && PL.GetMusicByIndex(0, ref path))
+            {
+                Play(path);
+            }
+        }
         public void Stop()
         {
-            _output?.Stop();
+            if (_output != null)
+            {
+                _output.PlaybackStopped -= OnPlaybackStopped;
+                _output.Stop();
+            }
             _output?.Dispose();
             _reader?.Dispose();
             _output = null;
             _reader = null;
+        }
+        /// <summary>
+        /// Call this after PL.Next / PL.Back to start the new current track
+        /// </summary>
+        public void RaiseUpdate()
+        {
+            if (PL == null) return;
+
+            string path = null;
+            if (PL.GetMusicByIndex(PL.CurrentPlaying, ref path))
+            {
+                Play(path);
+            }
         }
         public void Pause() => _output?.Pause();
 

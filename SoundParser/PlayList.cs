@@ -12,7 +12,14 @@ namespace VigilanteMusic.SoundParser
         private List<string> MusicPaths;
         private int _CurrentPlaying;
 
+        public PlayList()
+        {
+            MusicPaths = new List<string>();
+        }
 
+        public int CurrentPlaying => _CurrentPlaying;
+
+        
         /// <summary>
         /// this the variable checking validate MusicPlayList Paths
         /// </summary>

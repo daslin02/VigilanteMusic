@@ -12,6 +12,20 @@ namespace VigilanteMusic.SoundParser
         private List<string> MusicPaths;
         private int _CurrentPlaying;
 
+
+        /// <summary>
+        /// this the variable checking validate MusicPlayList Paths
+        /// </summary>
+        public bool IsVerified
+        {
+            get { return MusicPaths != null && MusicPaths.Count > 0; }
+        }
+
+        public int Length 
+        {
+            get { return MusicPaths.Count; }
+        }
+
         /// <summary>
         /// Getting Music By index on the playList
         /// </summary>
@@ -81,13 +95,42 @@ namespace VigilanteMusic.SoundParser
             _CurrentPlaying = back;
             return true;
         }
+        public void Push(string Path) => MusicPaths.Add(Path);
+        public void Clear() => MusicPaths.Clear();
+
         /// <summary>
-        /// this the variable checking validate MusicPlayList Paths
+        /// Remove Music by index on the playList
         /// </summary>
-        public bool IsVerified 
+        /// <param name="index">index on the playlist</param>
+        /// <returns>the success status of the operation</returns>
+        public bool RemoveByIndex(int index)
         {
-            get { return MusicPaths != null && MusicPaths.Count > 0; }
+            if (!IsVerified)
+            {
+                return false;
+            }
+            if (index < 0 || index > MusicPaths.Count - 1)
+            {
+                return false;
+            }
+
+            MusicPaths.RemoveAt(index);
+
+            if (_CurrentPlaying >= MusicPaths.Count)
+            {
+                _CurrentPlaying = MusicPaths.Count - 1;
+            }
+            return true;
         }
+        /// <summary>
+        /// Remove last Music on the playList
+        /// </summary>
+        /// <returns>the success status of the operation</returns>
+        public bool Pop()
+        {
+            return RemoveByIndex(MusicPaths.Count - 1);
+        }
+
 
     }
 }

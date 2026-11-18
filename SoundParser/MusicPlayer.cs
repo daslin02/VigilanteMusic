@@ -30,7 +30,7 @@ namespace VigilanteMusic.SoundParser
                     _reader.Volume = _volume;
             }
         }
-
+        
         public void Play(string filePath)
         {
             Stop();

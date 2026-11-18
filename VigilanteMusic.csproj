@@ -104,6 +104,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="SoundParser\Music.cs" />
     <Compile Include="SoundParser\MusicPlayer.cs" />
     <Compile Include="SoundParser\PlayList.cs" />
     <Compile Include="Utils\MyMath.cs" />

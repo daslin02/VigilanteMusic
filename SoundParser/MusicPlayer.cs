@@ -20,6 +20,11 @@ namespace VigilanteMusic.SoundParser
 
         public bool IsRepeat = false;
 
+        public MusicPlayer()
+        {
+            PL = new PlayList();
+        }
+
         public float Volume
         {
             get => _volume;
@@ -46,7 +51,6 @@ namespace VigilanteMusic.SoundParser
         {
             if (e.Exception != null || _output == null) return;
 
-            // repeat current track
             if (IsRepeat)
             {
                 _reader.Position = 0;
@@ -56,7 +60,6 @@ namespace VigilanteMusic.SoundParser
 
             string path = null;
 
-            // go to next track, wrap to first if it was the last one
             if (PL != null && PL.Next(out path))
             {
                 Play(path);

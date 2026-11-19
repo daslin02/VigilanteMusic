@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NAudio.Wave;
+using VigilanteMusic.Helpers;
 using VigilanteMusic.Utils;
 
 namespace VigilanteMusic.SoundParser
@@ -39,8 +40,8 @@ namespace VigilanteMusic.SoundParser
         public void Play(string filePath)
         {
             Stop();
-
-            _reader = new AudioFileReader(filePath);
+            string fixedpath = PathHelper.Normalize(filePath);
+            _reader = new AudioFileReader(fixedpath);
             _reader.Volume = _volume;
             _output = new WaveOutEvent();
             _output.PlaybackStopped += OnPlaybackStopped;

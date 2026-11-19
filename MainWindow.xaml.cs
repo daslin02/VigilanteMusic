@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows;
+using TagLib.Id3v2;
+using VigilanteMusic.Config;
+using VigilanteMusic.Helpers;
 using VigilanteMusic.SoundParser;
 
 namespace VigilanteMusic
@@ -13,52 +16,53 @@ namespace VigilanteMusic
 
         public MainWindow()
         {
-            InitializeComponent(); // Загруз. XAML
-
             // Иниц. плеер 
             player = new MusicPlayer();
             player.PL = new PlayList();
-            // Станет:
-            string track1 = "DrivingForceNeonFog.mp3";
-            player.PL.Push("D:/Music/" + track1);
+            MusicInfo info = player.PL.CurrentMusicInfo;
+            InitializeComponent(); // Загруз. XAML
 
-            // Первый альбом
-            List<string> trackNames = new List<string>
+            MusicFolderStore store = Config.MusicFolderStore.Load();
+            store.Folders.Add("D:/SteamLibrary/steamapps/music");
+            store.Save();
+            //store.save - чтобы сохранить, tostring для переделки в строку
+            //store.folder - получение всех папок где может лежать музыку
+            MusicScanner.GetAllMusic(); //возврат указанной папки и базовой папки музыки винды
+            List<string> SteamMusic = MusicScanner.GetAllMusic(); //SteamMusic хранит всю музыку из этой папки
+
+
+            //CurrentTrackLabel.Content = (SteamMusic);
+
+            foreach (string track in SteamMusic)
             {
-                "DrivingForceNeonFog.mp3",
-                "Infiltrator.mp3",
-                "LetThemKnow.mp3",
-                "TheOrb.mp3",
-                "TruthToPower.mp3",
-                "Air(Cybervoid).mp3",
-                "AlreadyDead.mp3",
-                "HumanLikeFeatures.mp3",
-                "YesDucking.mp3",
-                "SystemOverload.mp3",
-                "SneakyDriver.mp3",
-                "HittheFloor.mp3",
-                "TheMark.mp3",
-                "Razormind.mp3",
-                "EvilEye.mp3",
-                "Horizon.mp3",
-                "IsThantPhonkInAnOriginalSoundtrack.mp3",
-                "PetNursery.mp3",
-                "WelcomingFolks.mp3",
-                "WhatAreYouDoingInMySwamp.mp3",
-                "WhatFaithGivesYou.mp3"
-            };
+                player.PL.Push(track);
+                MusicInfo infothing = Music.GetInfo(track);
+                TrackQueueList.Items.Add(infothing.Title);
 
-            // 2. Проходим по списку циклом и делаем сразу два дела:
-            
-            string folderPath = "D:/Music/";
-
-            foreach (string track in trackNames)
-            {
-                player.PL.Push(folderPath + track);
-                TrackQueueList.Items.Add(track);
             }
-            TrackQueueList.Items.Add(track1);
-            player.Volume = 0.1f;
+            //TrackQueueList.Items.Add(track1);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            player.Volume = 0.05f;
 
             string first = null;
             player.PL.GetMusicByIndex(0, ref first);
@@ -69,7 +73,9 @@ namespace VigilanteMusic
             {
                 if (player.PL.Next(out string p))
                     player.RaiseUpdate();
-                CurrentTrackLabel.Content = p;
+                MusicInfo MusicInformation = player.PL.CurrentMusicInfo;
+                CurrentTrackLabel.Content = MusicInformation.ToString();
+
 
             };
 
@@ -78,7 +84,9 @@ namespace VigilanteMusic
             {
                 if (player.PL.Back(out string p))
                     player.RaiseUpdate();
-                CurrentTrackLabel.Content = p;
+                MusicInfo MusicInformation = player.PL.CurrentMusicInfo;
+                CurrentTrackLabel.Content = MusicInformation.ToString();
+
             };
 
             //повтор очереди

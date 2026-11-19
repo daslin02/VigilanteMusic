@@ -19,6 +19,7 @@ namespace VigilanteMusic
             // Иниц. плеер 
             player = new MusicPlayer();
             player.PL = new PlayList();
+
             MusicInfo info = player.PL.CurrentMusicInfo;
             InitializeComponent(); // Загруз. XAML
 
@@ -43,26 +44,8 @@ namespace VigilanteMusic
             //TrackQueueList.Items.Add(track1);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             player.Volume = 0.05f;
+
 
             string first = null;
             player.PL.GetMusicByIndex(0, ref first);
@@ -105,6 +88,11 @@ namespace VigilanteMusic
                     player.Pause();
 
                 paused = !paused;
+            };
+            btnShuffle.Click += (s, e) =>
+            {
+                player.IsShuffle = !player.IsShuffle;
+                btnShuffle.Content = player.IsShuffle? "Shuffle: ON" : "Shuffle: OFF";
             };
         }
     }

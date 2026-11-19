@@ -25,7 +25,7 @@ namespace VigilanteMusic.SoundParser
         {
             PL = new PlayList();
         }
-
+        public bool IsShuffle  {get => PL.IsShuffle; set => PL.IsShuffle = value;} 
         public float Volume
         {
             get => _volume;

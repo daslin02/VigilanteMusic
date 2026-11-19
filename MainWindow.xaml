@@ -5,8 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VigilanteMusic"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="720" Width="1080">
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+
+        </Grid.ColumnDefinitions>
+        <Button x:Name="btnNext" Content="Next" HorizontalAlignment="Left" Margin="288,495,0,15" VerticalAlignment="Bottom" FontFamily="Arial" FontSize="20"/>
+        <Button x:Name="btnBack" Content="Back" HorizontalAlignment="Left" Margin="235,495,0,15" VerticalAlignment="Bottom" FontFamily="Arial" FontSize="20"/>
+        <Button x:Name="btnRepeat" Content="Repeat" HorizontalAlignment="Left" Margin="252,463,0,50" VerticalAlignment="Bottom" FontFamily="Arial" FontSize="20"/>
+        <Button x:Name="btnShuffle" Content="Shuffle" HorizontalAlignment="Left" Margin="369,463,0,50" VerticalAlignment="Bottom" FontFamily="Arial" FontSize="20"/>
+        <Button x:Name="btnPause" Content="(Un)Pause" HorizontalAlignment="Left" Margin="352,495,0,15" VerticalAlignment="Bottom" FontFamily="Arial" FontSize="20"/>
+        <ListBox x:Name="TrackQueueList" Grid.ColumnSpan="2" d:ItemsSource="{d:SampleData ItemCount=5}" HorizontalAlignment="Left" FontFamily="Arial" FontSize="16"  Background="LightGray" MaxWidth="200"/>
+        <Label x:Name="CurrentTrackLabel" Content="Ничего не играет" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="276,10,0,0" FontFamily="Arial"/>
     </Grid>
 </Window>

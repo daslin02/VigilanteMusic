@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NAudio.Wave;
+
 using VigilanteMusic.Utils;
 
 namespace VigilanteMusic.SoundParser

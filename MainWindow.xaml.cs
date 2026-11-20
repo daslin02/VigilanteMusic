@@ -4,7 +4,9 @@ using System.Windows;
 using TagLib.Id3v2;
 using VigilanteMusic.Config;
 using VigilanteMusic.Helpers;
+using System.Configuration;
 using VigilanteMusic.SoundParser;
+using VigilanteMusic.DataBase;
 
 namespace VigilanteMusic
 {
@@ -18,7 +20,6 @@ namespace VigilanteMusic
         {
             // Иниц. плеер 
             player = new MusicPlayer();
-            player.PL = new PlayList();
 
             MusicInfo info = player.PL.CurrentMusicInfo;
             InitializeComponent(); // Загруз. XAML
@@ -31,8 +32,6 @@ namespace VigilanteMusic
             MusicScanner.GetAllMusic(); //возврат указанной папки и базовой папки музыки винды
             List<string> SteamMusic = MusicScanner.GetAllMusic(); //SteamMusic хранит всю музыку из этой папки
 
-
-            //CurrentTrackLabel.Content = (SteamMusic);
 
             foreach (string track in SteamMusic)
             {

@@ -106,6 +106,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Config\MusicFolderStore.cs" />
+    <Compile Include="DataBase\DBConnector.cs" />
+    <Compile Include="Helpers\ConnectionStringProvider.cs" />
     <Compile Include="Helpers\JsonHelper.cs" />
     <Compile Include="Helpers\MusicScanner.cs" />
     <Compile Include="Helpers\PathHelper.cs" />
@@ -157,6 +159,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Common\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="connection.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

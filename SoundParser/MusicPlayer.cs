@@ -37,10 +37,11 @@ namespace VigilanteMusic.SoundParser
             }
         }
         
-        public void Play(string filePath)
+        public void Play(Music track)
         {
             Stop();
-            string fixedpath = PathHelper.Normalize(filePath);
+
+            string fixedpath = PathHelper.Normalize(track.Load());
             _reader = new AudioFileReader(fixedpath);
             _reader.Volume = _volume;
             _output = new WaveOutEvent();
@@ -59,15 +60,15 @@ namespace VigilanteMusic.SoundParser
                 return;
             }
 
-            string path = null;
+            Music track = null;
 
-            if (PL != null && PL.Next(out path))
+            if (PL != null && PL.Next(out track))
             {
-                Play(path);
+                Play(track);
             }
-            else if (PL != null && PL.IsVerified && PL.GetMusicByIndex(0, ref path))
+            else if (PL != null && PL.IsVerified && PL.GetMusicByIndex(0, ref track))
             {
-                Play(path);
+                Play(track);
             }
         }
         public void Stop()
@@ -89,10 +90,10 @@ namespace VigilanteMusic.SoundParser
         {
             if (PL == null) return;
 
-            string path = null;
-            if (PL.GetMusicByIndex(PL.CurrentPlaying, ref path))
+            Music track = null;
+            if (PL.GetMusicByIndex(PL.CurrentPlaying, ref track))
             {
-                Play(path);
+                Play(track);
             }
         }
         public void Pause() => _output?.Pause();

@@ -30,26 +30,25 @@ namespace VigilanteMusic
             ////store.save - чтобы сохранить, tostring для переделки в строку
             ////store.folder - получение всех папок где может лежать музыку
             //MusicScanner.GetAllMusic(); //возврат указанной папки и базовой папки музыки винды
-            //List<string> SteamMusic = MusicScanner.GetAllMusic(); //SteamMusic хранит всю музыку из этой папки
+            List<string> SteamMusic = MusicScanner.GetAllMusic(); //SteamMusic хранит всю музыку из этой папки
 
+            foreach (string track in SteamMusic)
+            {
+                player.PL.Push(track);
+                MusicInfo infothing = Music.GetInfo(track);
+                TrackQueueList.Items.Add(infothing.Title);
 
-            //foreach (string track in SteamMusic)
-            //{
-            //    player.PL.Push(track);
-            //    MusicInfo infothing = Music.GetInfo(track);
-            //    TrackQueueList.Items.Add(infothing.Title);
+            }
 
-            //}
             DBReader reader = new DBReader();
             List<MusicNetInfo> tracks = MusicNet.GetAllInfo(reader);
 
-            
+
             foreach (MusicNetInfo NetInfo in tracks)
             {
                 MusicNet track = new MusicNet(NetInfo.Id, reader);
-                string path = track.Load();  
 
-                player.PL.Push(path);
+                player.PL.Push(track);
                 TrackQueueList.Items.Add(NetInfo.Title);
             }
 
@@ -57,25 +56,24 @@ namespace VigilanteMusic
             player.Volume = 0.05f;
 
 
-            string first = null;
+            Music first = null;
             player.PL.GetMusicByIndex(0, ref first);
             player.Play(first);
 
             //перекл на след трек
             btnNext.Click += (s, e) =>
             {
-                if (player.PL.Next(out string p))
+                if (player.PL.Next(out Music Mus))
                     player.RaiseUpdate();
                 MusicInfo MusicInformation = player.PL.CurrentMusicInfo;
                 CurrentTrackLabel.Content = MusicInformation.ToString();
-
 
             };
 
             //перекл на прошл трек
             btnBack.Click += (s, e) =>
             {
-                if (player.PL.Back(out string p))
+                if (player.PL.Back(out Music Mus))
                     player.RaiseUpdate();
                 MusicInfo MusicInformation = player.PL.CurrentMusicInfo;
                 CurrentTrackLabel.Content = MusicInformation.ToString();

@@ -58,8 +58,73 @@ namespace VigilanteMusic.SoundParser
         public override string ToString() => DescribeNet();
     }
 
-    public class Music
+     public class Music
     {
+        private MusicInfo _info;
+        private bool _infoLoaded;
+
+        /// <summary>
+        /// Path of the source file. Empty for tracks that exist only in the database.
+        /// </summary>
+        public string FilePath { get; protected set; }
+
+        /// <summary>
+        /// Metadata of this track. Read from the file on first access and cached afterwards.
+        /// </summary>
+        public virtual MusicInfo Info
+        {
+            get
+            {
+                if (!_infoLoaded)
+                {
+                    _info = GetInfo(FilePath);
+                    _infoLoaded = true;
+                }
+                return _info;
+            }
+            protected set
+            {
+                _info = value;
+                _infoLoaded = true;
+            }
+        }
+
+        public string Title => Info?.Title;
+        public string Artist => Info?.Artist;
+        public string Album => Info?.Album;
+        public TimeSpan Duration => Info != null ? Info.Duration : TimeSpan.Zero;
+
+        /// <summary>True once metadata has been read successfully.</summary>
+        public bool HasInfo => Info != null;
+
+        /// <summary>
+        /// Creates a track bound to a local file. Tags are not read until Info is requested.
+        /// </summary>
+        public Music(string filePath)
+        {
+            FilePath = filePath;
+        }
+
+        /// <summary>
+        /// Creates a track from already known metadata, skipping any file access.
+        /// Used by MusicNet when the row comes from the database.
+        /// </summary>
+        protected Music(MusicInfo info)
+        {
+            _info = info;
+            _infoLoaded = true;
+            FilePath = info?.FilePath;
+        }
+
+        /// <summary>
+        /// Forces a re-read of the tags on the next Info access.
+        /// </summary>
+        public void RefreshInfo()
+        {
+            _infoLoaded = false;
+            _info = null;
+        }
+
         /// <summary>
         /// Extracts metadata from an audio file using TagLib#
         /// </summary>
@@ -127,13 +192,15 @@ namespace VigilanteMusic.SoundParser
 
             return result;
         }
+
         /// <summary>
         /// Returns the local path of the track. Base implementation only resolves an existing file.
         /// Overridden by MusicNet to materialize a blob from the database first.
         /// </summary>
         public virtual string Load()
         {
-            return null;
+            if (string.IsNullOrEmpty(FilePath)) return null;
+            return System.IO.File.Exists(FilePath) ? FilePath : null;
         }
 
         /// <summary>
@@ -145,24 +212,27 @@ namespace VigilanteMusic.SoundParser
         {
             return null;
         }
+
+        public override string ToString()
+        {
+            return Info != null ? Info.ToString() : System.IO.Path.GetFileName(FilePath);
+        }
     }
-    /// <summary>
-    /// A track whose metadata and audio come from the database instead of the local file system.
-    /// </summary>
     public class MusicNet : Music
     {
         private readonly DBReader _reader;
-        private string _localPath;
 
         public int Id { get; private set; }
-        public MusicNetInfo Info { get; private set; }
 
         /// <summary>Path of the materialized file, null until Load or Download succeeds.</summary>
-        public string LocalPath => _localPath;
+        public string LocalPath => base.FilePath;
 
-        public bool IsLoaded => _localPath != null && IOFile.Exists(_localPath);
+        public bool IsLoaded => !string.IsNullOrEmpty(LocalPath) && IOFile.Exists(LocalPath);
 
-        public MusicNet(int id, DBReader reader = null)
+        /// <summary>
+        /// Creates a track backed by the database. Metadata is loaded lazily on first access to Info.
+        /// </summary>
+        public MusicNet(int id, DBReader reader = null) : base((MusicInfo)null)
         {
             Id = id;
             _reader = reader ?? new DBReader();
@@ -197,15 +267,37 @@ namespace VigilanteMusic.SoundParser
         }
 
         /// <summary>
+        /// Overrides base.Info to fetch data from the database instead of a local file.
+        /// The result is cached in the base class so the query runs only once.
+        /// </summary>
+        public override MusicInfo Info
+        {
+            get
+            {
+                if (base.Info == null)
+                {
+                    base.Info = GetInfo(Id, _reader);
+                }
+                return base.Info;
+            }
+            protected set { base.Info = value; }
+        }
+
+        /// <summary>
         /// Pulls the audio blob out of the database into the shared cache and returns its path.
         /// For rows stored in path mode the original file path is returned as is.
         /// </summary>
         public override string Load()
         {
-            if (IsLoaded) return _localPath;
+            if (IsLoaded) return LocalPath;
 
-            _localPath = NetMusicController.Instance.Acquire(Id, _reader);
-            return _localPath;
+            string path = NetMusicController.Instance.Acquire(Id, _reader);
+            if (!string.IsNullOrEmpty(path))
+            {
+                // Update the base FilePath so other parts of the system see the real location
+                base.FilePath = path;
+            }
+            return path;
         }
 
         /// <summary>
@@ -216,16 +308,17 @@ namespace VigilanteMusic.SoundParser
         {
             if (string.IsNullOrWhiteSpace(saveDirectory)) return null;
 
+            // Ensure we have metadata to know the filename
             if (Info == null) Info = GetInfo(Id, _reader);
             if (Info == null) return null;
 
             Directory.CreateDirectory(saveDirectory);
 
-            string name = SanitizeFileName(Info.FileName ?? (Info.Title + (Info.Extension ?? ".mp3")));
+            string name = SanitizeFileName(((MusicNetInfo)Info).FileName ?? (Info.Title + (Info is MusicNetInfo mni ? mni.Extension : ".mp3")));
             string target = Path.Combine(saveDirectory, name);
 
             // path mode: copy the original file if it is reachable
-            if (!Info.IsBlob)
+            if (!((MusicNetInfo)Info).IsBlob)
             {
                 if (string.IsNullOrEmpty(Info.FilePath) || !IOFile.Exists(Info.FilePath)) return null;
                 IOFile.Copy(Info.FilePath, target, true);
@@ -255,9 +348,13 @@ namespace VigilanteMusic.SoundParser
         /// <summary>Drops the cached file reference held by this instance.</summary>
         public void Unload()
         {
-            if (_localPath != null)
-                NetMusicController.Instance.Release(_localPath);
-            _localPath = null;
+            if (!string.IsNullOrEmpty(LocalPath))
+            {
+                NetMusicController.Instance.Release(LocalPath);
+                // Reset FilePath to null or original DB path if needed, 
+                // but usually keeping it null forces re-load next time
+                base.FilePath = null;
+            }
         }
 
         // ---------- helpers ----------

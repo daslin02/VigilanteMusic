@@ -191,7 +191,7 @@ namespace VigilanteMusic.SoundParser
                     .OrderBy(e => e.LastAccessUtc)
                     .FirstOrDefault();
 
-                if (victim == null) break;   // everything is in use, keep it
+                if (victim == null) break;   
                 RemoveEntry(victim);
             }
         }

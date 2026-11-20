@@ -24,23 +24,34 @@ namespace VigilanteMusic
             MusicInfo info = player.PL.CurrentMusicInfo;
             InitializeComponent(); // Загруз. XAML
 
-            MusicFolderStore store = Config.MusicFolderStore.Load();
-            store.Folders.Add("D:/SteamLibrary/steamapps/music");
-            store.Save();
-            //store.save - чтобы сохранить, tostring для переделки в строку
-            //store.folder - получение всех папок где может лежать музыку
-            MusicScanner.GetAllMusic(); //возврат указанной папки и базовой папки музыки винды
-            List<string> SteamMusic = MusicScanner.GetAllMusic(); //SteamMusic хранит всю музыку из этой папки
+            //MusicFolderStore store = Config.MusicFolderStore.Load();
+            //store.Folders.Add("D:/SteamLibrary/steamapps/music");
+            //store.Save();
+            ////store.save - чтобы сохранить, tostring для переделки в строку
+            ////store.folder - получение всех папок где может лежать музыку
+            //MusicScanner.GetAllMusic(); //возврат указанной папки и базовой папки музыки винды
+            //List<string> SteamMusic = MusicScanner.GetAllMusic(); //SteamMusic хранит всю музыку из этой папки
 
 
-            foreach (string track in SteamMusic)
+            //foreach (string track in SteamMusic)
+            //{
+            //    player.PL.Push(track);
+            //    MusicInfo infothing = Music.GetInfo(track);
+            //    TrackQueueList.Items.Add(infothing.Title);
+
+            //}
+            DBReader reader = new DBReader();
+            List<MusicNetInfo> tracks = MusicNet.GetAllInfo(reader);
+
+            
+            foreach (MusicNetInfo NetInfo in tracks)
             {
-                player.PL.Push(track);
-                MusicInfo infothing = Music.GetInfo(track);
-                TrackQueueList.Items.Add(infothing.Title);
+                MusicNet track = new MusicNet(NetInfo.Id, reader);
+                string path = track.Load();  
 
+                player.PL.Push(path);
+                TrackQueueList.Items.Add(NetInfo.Title);
             }
-            //TrackQueueList.Items.Add(track1);
 
 
             player.Volume = 0.05f;

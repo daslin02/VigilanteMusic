@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TagLib;
+using IOFile = System.IO.File;     
+using TagFile = TagLib.File;
+using VigilanteMusic.DataBase;
 
 namespace VigilanteMusic.SoundParser
 {
@@ -16,12 +20,42 @@ namespace VigilanteMusic.SoundParser
         public string Genre { get; set; }
         public TimeSpan Duration { get; set; }
         public string FilePath { get; set; }
-        public byte[] Picture { get; set; } 
+        public byte[] Picture { get; set; }
 
-        public override string ToString()
+        public override string ToString() => Describe();
+
+        /// <summary>Overridable description used by ToString.</summary>
+        protected virtual string Describe()
         {
             return $"{Artist} - {Title} ({Album}, {Year})";
         }
+    }
+    /// <summary>
+    /// MusicInfo extended with the columns that only exist in the database.
+    /// </summary>
+    public class MusicNetInfo : MusicInfo
+    {
+        public int Id { get; set; }
+        public string FileName { get; set; }
+        public string Extension { get; set; }
+        public long FileSizeBytes { get; set; }
+        public string FileHash { get; set; }
+        public int? TrackNumber { get; set; }
+        public int? Bitrate { get; set; }
+        public int? SampleRate { get; set; }
+        public int? Channels { get; set; }
+        public string StorageMode { get; set; }
+        public DateTime? ModifiedUtc { get; set; }
+
+        /// <summary>True when the audio bytes live inside the database.</summary>
+        public bool IsBlob => string.Equals(StorageMode, "blob", StringComparison.OrdinalIgnoreCase);
+
+        protected virtual string DescribeNet()
+        {
+            return $"[{Id}] {Artist} - {Title} ({Album}, {Year}) {(FileSizeBytes / 1048576.0):F2} MB";
+        }
+
+        public override string ToString() => DescribeNet();
     }
 
     public class Music
@@ -92,6 +126,180 @@ namespace VigilanteMusic.SoundParser
             }
 
             return result;
+        }
+        /// <summary>
+        /// Returns the local path of the track. Base implementation only resolves an existing file.
+        /// Overridden by MusicNet to materialize a blob from the database first.
+        /// </summary>
+        public virtual string Load()
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Saves the audio into the given folder. Empty in the base class - local files need no download.
+        /// </summary>
+        /// <param name="saveDirectory">Folder where the file must be written</param>
+        /// <returns>Full path of the saved file, or null on failure</returns>
+        public virtual string Download(string saveDirectory)
+        {
+            return null;
+        }
+    }
+    /// <summary>
+    /// A track whose metadata and audio come from the database instead of the local file system.
+    /// </summary>
+    public class MusicNet : Music
+    {
+        private readonly DBReader _reader;
+        private string _localPath;
+
+        public int Id { get; private set; }
+        public MusicNetInfo Info { get; private set; }
+
+        /// <summary>Path of the materialized file, null until Load or Download succeeds.</summary>
+        public string LocalPath => _localPath;
+
+        public bool IsLoaded => _localPath != null && IOFile.Exists(_localPath);
+
+        public MusicNet(int id, DBReader reader = null)
+        {
+            Id = id;
+            _reader = reader ?? new DBReader();
+        }
+
+        /// <summary>
+        /// Reads metadata from dbo.Tracks. No audio bytes and no disk access.
+        /// </summary>
+        public static MusicNetInfo GetInfo(int id, DBReader reader = null)
+        {
+            var db = reader ?? new DBReader();
+            TrackRow row = db.GetById(id, withCover: true);
+            return row == null ? null : Map(row);
+        }
+
+        /// <summary>Same lookup, but by the original path recorded during import.</summary>
+        public static MusicNetInfo GetInfo(string filePath, DBReader reader = null)
+        {
+            var db = reader ?? new DBReader();
+            TrackRow row = db.GetByPath(filePath, withCover: true);
+            return row == null ? null : Map(row);
+        }
+
+        /// <summary>Metadata of every track in the table.</summary>
+        public static List<MusicNetInfo> GetAllInfo(DBReader reader = null, bool withCover = false)
+        {
+            var db = reader ?? new DBReader();
+            var result = new List<MusicNetInfo>();
+            foreach (TrackRow row in db.GetAllTracks(withCover))
+                result.Add(Map(row));
+            return result;
+        }
+
+        /// <summary>
+        /// Pulls the audio blob out of the database into the shared cache and returns its path.
+        /// For rows stored in path mode the original file path is returned as is.
+        /// </summary>
+        public override string Load()
+        {
+            if (IsLoaded) return _localPath;
+
+            _localPath = NetMusicController.Instance.Acquire(Id, _reader);
+            return _localPath;
+        }
+
+        /// <summary>
+        /// Writes the audio into saveDirectory and returns the resulting full path.
+        /// The file is kept outside the cache, so eviction never removes it.
+        /// </summary>
+        public override string Download(string saveDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(saveDirectory)) return null;
+
+            if (Info == null) Info = GetInfo(Id, _reader);
+            if (Info == null) return null;
+
+            Directory.CreateDirectory(saveDirectory);
+
+            string name = SanitizeFileName(Info.FileName ?? (Info.Title + (Info.Extension ?? ".mp3")));
+            string target = Path.Combine(saveDirectory, name);
+
+            // path mode: copy the original file if it is reachable
+            if (!Info.IsBlob)
+            {
+                if (string.IsNullOrEmpty(Info.FilePath) || !IOFile.Exists(Info.FilePath)) return null;
+                IOFile.Copy(Info.FilePath, target, true);
+                return target;
+            }
+
+            string temp = target + ".part";
+            try
+            {
+                using (var fs = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    if (!_reader.WriteAudioTo(Id, fs)) return null;
+                }
+
+                if (IOFile.Exists(target)) IOFile.Delete(target);
+                IOFile.Move(temp, target);
+                return target;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MusicNet] Download failed for {Id}: {ex.Message}");
+                TryDelete(temp);
+                return null;
+            }
+        }
+
+        /// <summary>Drops the cached file reference held by this instance.</summary>
+        public void Unload()
+        {
+            if (_localPath != null)
+                NetMusicController.Instance.Release(_localPath);
+            _localPath = null;
+        }
+
+        // ---------- helpers ----------
+
+        private static MusicNetInfo Map(TrackRow row)
+        {
+            return new MusicNetInfo
+            {
+                Id = row.Id,
+                FilePath = row.FilePath,
+                FileName = row.FileName,
+                Extension = row.Extension,
+                FileSizeBytes = row.FileSizeBytes,
+                FileHash = row.FileHash,
+                Title = row.Title ?? Path.GetFileNameWithoutExtension(row.FileName),
+                Artist = row.Artist ?? "Unknown Artist",
+                Album = row.Album ?? "Unknown Album",
+                Year = row.Year.HasValue && row.Year.Value > 0 ? (uint?)row.Year.Value : null,
+                Genre = row.Genre,
+                Duration = row.DurationMs.HasValue ? TimeSpan.FromMilliseconds(row.DurationMs.Value) : TimeSpan.Zero,
+                Picture = row.CoverArt,
+                TrackNumber = row.TrackNumber,
+                Bitrate = row.Bitrate,
+                SampleRate = row.SampleRate,
+                Channels = row.Channels,
+                StorageMode = row.StorageMode,
+                ModifiedUtc = row.ModifiedUtc
+            };
+        }
+
+        internal static string SanitizeFileName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return "track.bin";
+            foreach (char c in Path.GetInvalidFileNameChars())
+                name = name.Replace(c, '_');
+            return name;
+        }
+
+        internal static void TryDelete(string path)
+        {
+            try { if (IOFile.Exists(path)) IOFile.Delete(path); }
+            catch { /* file may still be locked by the player */ }
         }
     }
 }

@@ -107,12 +107,14 @@
     </ApplicationDefinition>
     <Compile Include="Config\MusicFolderStore.cs" />
     <Compile Include="DataBase\DBConnector.cs" />
+    <Compile Include="DataBase\DBReader.cs" />
     <Compile Include="Helpers\ConnectionStringProvider.cs" />
     <Compile Include="Helpers\JsonHelper.cs" />
     <Compile Include="Helpers\MusicScanner.cs" />
     <Compile Include="Helpers\PathHelper.cs" />
     <Compile Include="SoundParser\Music.cs" />
     <Compile Include="SoundParser\MusicPlayer.cs" />
+    <Compile Include="SoundParser\NetMusicController.cs" />
     <Compile Include="SoundParser\PlayList.cs" />
     <Compile Include="Utils\MyMath.cs" />
     <Page Include="MainWindow.xaml">

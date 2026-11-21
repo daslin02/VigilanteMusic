@@ -173,6 +173,12 @@
     <Content Include="Source\Icon\Pause.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Source\Icon\Repeat.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Source\Icon\Shuffle.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Source\Icon\UnPause.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

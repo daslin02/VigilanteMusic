@@ -58,7 +58,7 @@ namespace VigilanteMusic.Helpers
                 if (track == null) continue;
 
                 bool isNet = track is MusicNet;
-                string path = "";
+                string path;
                 if (!isNet) 
                 {
                     path = track.FilePath;

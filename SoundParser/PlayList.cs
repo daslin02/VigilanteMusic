@@ -6,7 +6,7 @@ namespace VigilanteMusic.SoundParser
 {
     public class PlayList
     {
-        private readonly List<Music> _tracks;
+        private  List<Music> _tracks;
         private readonly List<int> _playedIndexes;
         private readonly Random _random = new Random();
         private int _CurrentPlaying;
@@ -304,6 +304,16 @@ namespace VigilanteMusic.SoundParser
                     return i;
             }
             return -1;
+        }
+        /// <summary>
+        /// Update Play List track
+        /// </summary>
+        /// <param name="tracks"> New Play List track</param>
+        public void Swap(List<Music> tracks) 
+        {
+            this._CurrentPlaying = 0;
+            this._tracks = tracks;
+
         }
     }
 }

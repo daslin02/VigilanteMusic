@@ -162,9 +162,13 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Common\" />
+    <Folder Include="Source\Icon\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="connection.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Source\Picture\DeffaultMusicImage.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

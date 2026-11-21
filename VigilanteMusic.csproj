@@ -106,11 +106,16 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Config\MusicFolderStore.cs" />
+    <Compile Include="DataBase\DBConnector.cs" />
+    <Compile Include="DataBase\DBReader.cs" />
+    <Compile Include="Helpers\ConnectionStringProvider.cs" />
     <Compile Include="Helpers\JsonHelper.cs" />
     <Compile Include="Helpers\MusicScanner.cs" />
     <Compile Include="Helpers\PathHelper.cs" />
+    <Compile Include="Helpers\PlayListGeneric.cs" />
     <Compile Include="SoundParser\Music.cs" />
     <Compile Include="SoundParser\MusicPlayer.cs" />
+    <Compile Include="SoundParser\NetMusicController.cs" />
     <Compile Include="SoundParser\PlayList.cs" />
     <Compile Include="Utils\MyMath.cs" />
     <Page Include="MainWindow.xaml">
@@ -157,6 +162,29 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Common\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="connection.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Source\Icon\ArrowRight.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Source\Icon\Pause.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Source\Icon\Repeat.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Source\Icon\Shuffle.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Source\Icon\UnPause.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Source\Picture\DeffaultMusicImage.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -97,6 +97,7 @@ namespace VigilanteMusic
 
                 paused = !paused;
             };
+            
             btnShuffle.Click += (s, e) =>
             {
                 player.IsShuffle = !player.IsShuffle;

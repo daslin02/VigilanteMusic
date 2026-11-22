@@ -40,7 +40,7 @@ namespace VigilanteMusic.SoundParser
         public void Play(Music track)
         {
             Stop();
-
+            Update.Invoke();
             string fixedpath = PathHelper.Normalize(track.Load());
             _reader = new AudioFileReader(fixedpath);
             _reader.Volume = _volume;

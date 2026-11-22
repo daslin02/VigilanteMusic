@@ -64,29 +64,28 @@ namespace VigilanteMusic
             string playlistName = PlaylistBox.SelectedItem.ToString();
             List<Music> sourceList = null;
 
-            if (playlistName == "DataBase")
+            if (string.Equals(playlistName, "DataBase", StringComparison.OrdinalIgnoreCase))
+            {
                 sourceList = _allDbTracks;
-            else if (playlistName == "All")
+            }
+            else if (string.Equals(playlistName, "All", StringComparison.OrdinalIgnoreCase))
             {
                 sourceList = new List<Music>(_allLocalTracks);
                 sourceList.AddRange(_allDbTracks);
             }
 
-            if (sourceList != null)
-            {
+            if (sourceList == null) return;
 
-                TrackQueueList.Items.Clear();
+            TrackQueueList.Items.Clear();
+            foreach (var track in sourceList)
+                TrackQueueList.Items.Add(track);
 
-                foreach (var track in sourceList)
-                    TrackQueueList.Items.Add(track);
+            player.PL.Swap(new List<Music>(sourceList));
 
-                player.PL.Swap(new List<Music>(sourceList));
-
-                TrackQueueList.SelectedIndex = -1;
-                LblTitle.Text = "Select a track";
-                LblArtist.Text = "";
-                CoverImage.Source = null;
-            }
+            TrackQueueList.SelectedIndex = -1;
+            LblTitle.Text = "Select a track";
+            LblArtist.Text = "";
+            CoverImage.Source = null;
         }
 
         private void TrackQueueList_SelectionChanged(object sender, SelectionChangedEventArgs e)

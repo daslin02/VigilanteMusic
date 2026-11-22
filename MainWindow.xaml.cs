@@ -15,6 +15,9 @@ namespace VigilanteMusic
     public partial class MainWindow : Window
     {
         private readonly LibraryManager _library = new LibraryManager();
+
+
+
         private MusicPlayer player = new MusicPlayer();
 
         bool IsPause = false;

@@ -15,6 +15,7 @@ namespace VigilanteMusic.Helpers
     {
         /// <summary>Name of the virtual playlist that shows everything.</summary>
         public const string AllPlaylistName = "ALL";
+        public const string DataBasePlaylistName = "DataBase";
 
         private readonly List<Music> _localTracks = new List<Music>();
         private readonly List<Music> _dbTracks = new List<Music>();
@@ -82,11 +83,15 @@ namespace VigilanteMusic.Helpers
         }
 
         /// <summary>
-        /// All playlist names shown in the left panel: ALL plus every saved file.
+        /// All playlist names shown in the left panel: ALL, DataBase (when available) and saved files.
         /// </summary>
         public List<string> GetPlaylistNames()
         {
             var names = new List<string> { AllPlaylistName };
+
+            if (_dbTracks.Count > 0)
+                names.Add(DataBasePlaylistName);
+
             names.AddRange(_savedPlaylists.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase));
             return names;
         }
@@ -107,6 +112,7 @@ namespace VigilanteMusic.Helpers
             return GetTracksOf(playlistName);
         }
 
+
         /// <summary>Reads the tracks of a playlist without changing the current selection.</summary>
         public List<Music> GetTracksOf(string playlistName)
         {
@@ -117,6 +123,9 @@ namespace VigilanteMusic.Helpers
                 return merged;
             }
 
+            if (string.Equals(playlistName, DataBasePlaylistName, StringComparison.OrdinalIgnoreCase))
+                return new List<Music>(_dbTracks);
+
             List<Music> saved;
             return _savedPlaylists.TryGetValue(playlistName, out saved)
                 ? new List<Music>(saved)
@@ -126,9 +135,11 @@ namespace VigilanteMusic.Helpers
         /// <summary>True when the playlist is a real file that can be edited.</summary>
         public bool IsEditable(string playlistName)
         {
-            return !string.IsNullOrWhiteSpace(playlistName)
-                && !string.Equals(playlistName, AllPlaylistName, StringComparison.OrdinalIgnoreCase)
-                && _savedPlaylists.ContainsKey(playlistName);
+            if (string.IsNullOrWhiteSpace(playlistName)) return false;
+            if (string.Equals(playlistName, AllPlaylistName, StringComparison.OrdinalIgnoreCase)) return false;
+            if (string.Equals(playlistName, DataBasePlaylistName, StringComparison.OrdinalIgnoreCase)) return false;
+
+            return _savedPlaylists.ContainsKey(playlistName);
         }
 
         // ------------------------------------------------------------------ //

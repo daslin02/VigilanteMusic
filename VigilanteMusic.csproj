@@ -110,6 +110,7 @@
     <Compile Include="DataBase\DBReader.cs" />
     <Compile Include="Helpers\ConnectionStringProvider.cs" />
     <Compile Include="Helpers\JsonHelper.cs" />
+    <Compile Include="Helpers\LibraryManager.cs" />
     <Compile Include="Helpers\MusicScanner.cs" />
     <Compile Include="Helpers\PathHelper.cs" />
     <Compile Include="Helpers\PlayListGeneric.cs" />

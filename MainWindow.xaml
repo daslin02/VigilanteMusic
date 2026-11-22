@@ -34,15 +34,31 @@
 
 
         <Grid Grid.Column="1" Grid.Row="0">
+            
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="200"/>
-
+                
             </Grid.RowDefinitions>
-
+            <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Top"
+            Height="32" Margin="6,4" Panel.ZIndex="1">
+                <Button x:Name="BtnAddFolder" Content="Add folder" Padding="8,2" Margin="0,0,4,0"
+            Click="BtnAddFolder_Click"/>
+                <Button x:Name="BtnNewPlaylist" Content="New playlist" Padding="8,2" Margin="0,0,4,0"
+            Click="BtnNewPlaylist_Click"/>
+                <Button x:Name="BtnDeletePlaylist" Content="Delete playlist" Padding="8,2" Margin="0,0,12,0"
+            Click="BtnDeletePlaylist_Click"/>
+                <ComboBox x:Name="TargetPlaylistBox" Width="130" Margin="0,0,4,0" VerticalContentAlignment="Center"/>
+                <Button x:Name="BtnAddToPlaylist" Content="Add to →" Padding="8,2" Margin="0,0,4,0"
+            Click="BtnAddToPlaylist_Click"/>
+                <Button x:Name="BtnRemoveTrack" Content="Remove" Padding="8,2"
+            Click="BtnRemoveTrack_Click"/>
+            </StackPanel>
 
             <ListBox x:Name="TrackQueueList" 
                      Grid.Row="0"
+                     Margin="0,40,0,0"
+                     SelectionMode="Extended"
                      Background="Transparent" 
                      BorderThickness="0"
                      SelectionChanged="TrackQueueList_SelectionChanged">

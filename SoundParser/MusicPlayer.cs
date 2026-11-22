@@ -18,6 +18,7 @@ namespace VigilanteMusic.SoundParser
         public PlayList PL;
 
         public event Action Update;
+        public event Action<Music> UpdateInfo;
 
         public bool IsRepeat = false;
 
@@ -40,8 +41,8 @@ namespace VigilanteMusic.SoundParser
         public void Play(Music track)
         {
             Stop();
-            Update.Invoke();
             string fixedpath = PathHelper.Normalize(track.Load());
+            UpdateInfo.Invoke(track);
             _reader = new AudioFileReader(fixedpath);
             _reader.Volume = _volume;
             _output = new WaveOutEvent();

@@ -27,12 +27,16 @@ namespace VigilanteMusic
             InitializeComponent();
 
             player.Update += OnPlayerTrackChanged;
+            player.UpdateInfo += UpdateMusicPlayer;
 
             Closed += (s, e) => player.Dispose();
 
             LoadDataAsync();
         }
-
+        private void UpdateMusicPlayer(Music track) 
+        {
+            UpdateUiFromTrack(track);
+        }
         private async void LoadDataAsync()
         {
             await System.Threading.Tasks.Task.Run(() => _library.ReloadLocalTracks());
